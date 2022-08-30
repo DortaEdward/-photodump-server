@@ -24,7 +24,7 @@ const authRoute = require('./api/auth');
 const userRoute = require('./api/user');
 
 app.use('/api/v1/auth', authRoute);
-app.use('/api/v1/user', isLoggedIn, userRoute)
+app.use('/api/v1/user', userRoute)
 
 app.use(notFound);
 app.use(errorHandler);
