@@ -48,6 +48,7 @@ model User {
   name        String   @db.VarChar(30)
   bio         String   @db.VarChar(500)
   email       String   @unique @db.VarChar(50)
+  password    String   @unique @db.VarChar(50)
   image       String?
   createdAt   DateTime @default(now()) @map(name: "created_at")
   updatedAt   DateTime @default(now()) @updatedAt @map(name: "updated_at")
