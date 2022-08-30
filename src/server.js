@@ -4,7 +4,9 @@ const cors = require('cors');
 const volleyball = require('volleyball');
 const {
   notFound,
-  errorHandler
+  errorHandler,
+  checkTokenSetUser,
+  isLoggedIn
 } = require('./middleware');
 require('dotenv').config();
 
@@ -16,10 +18,13 @@ app.use(cors({
 app.use(helmet());
 app.use(volleyball);
 app.use(express.json());
+app.use(checkTokenSetUser);
 
 const authRoute = require('./api/auth');
+const userRoute = require('./api/user');
 
 app.use('/api/v1/auth', authRoute);
+app.use('/api/v1/user', isLoggedIn, userRoute)
 
 app.use(notFound);
 app.use(errorHandler);

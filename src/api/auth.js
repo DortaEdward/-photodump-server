@@ -1,26 +1,13 @@
 const router = require('express').Router();
 const {
-  PrismaClient
-} = require('@prisma/client')
-const prisma = new PrismaClient()
+  createJWT
+} = require('../middleware');
+
+const prisma = require('../db/prisma');
+
 const bcrypt = require('bcrypt');
 
-router.get('/', async (req, res) => {
-  try {
-    const users = await prisma.users.findMany({});
-    res.json({
-      status: 200,
-      users: users,
-    })
-  } catch (error) {
-    res.json({
-      error: error.message,
-      stack: error.stack
-    })
-  }
-})
-
-router.post('/register', async (req, res) => {
+router.post('/register', async (req, res, next) => {
   try {
     const data = req.body;
     const salt = bcrypt.genSaltSync(10);
@@ -39,7 +26,6 @@ router.post('/register', async (req, res) => {
       res.status(200).json({
         status: 200,
         message: 'User Created',
-        user: user
       })
     };
 
@@ -50,6 +36,45 @@ router.post('/register', async (req, res) => {
       stack: error.stack
     })
   }
-})
+});
+
+router.post('/login', async (req, res, next) => {
+  try {
+    const {
+      email,
+      password
+    } = req.body;
+    const user = await prisma.users.findUnique({
+      where: {
+        email: String(email)
+      }
+    });
+
+    if (!user) {
+      const error = new Error("User does not exist");
+      res.status(404);
+      next(error);
+    }
+
+    const validPassword = await bcrypt.compareSync(password, user.password);
+    if (!validPassword) {
+      const error = new Error("Password does not match");
+      res.status(404);
+      next(error);
+    }
+    const payload = {
+      id: user.id,
+      name: user.name,
+      displayName: user.displayName,
+      bio: user.bio,
+      image: user.image === null ? 'default.png' : user.image
+    }
+    createJWT(payload, res);
+
+  } catch (error) {
+    res.status(500);
+    next(error);
+  }
+});
 
 module.exports = router;
