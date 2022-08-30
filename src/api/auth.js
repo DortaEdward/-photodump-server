@@ -1,16 +1,13 @@
 const router = require('express').Router();
 const {
-  PrismaClient,
-} = require('@prisma/client');
-
+  PrismaClient
+} = require('@prisma/client')
+const prisma = new PrismaClient()
 const bcrypt = require('bcrypt');
-
-const prisma = new PrismaClient();
-
 
 router.get('/', async (req, res) => {
   try {
-    const users = await prisma.user.findMany({})
+    const users = await prisma.users.findMany({});
     res.json({
       status: 200,
       users: users,
@@ -25,15 +22,26 @@ router.get('/', async (req, res) => {
 
 router.post('/register', async (req, res) => {
   try {
-    const {
-      displayName,
-      name,
-      bio,
-      email,
-      password
-    } = req.body;
+    const data = req.body;
+    const salt = bcrypt.genSaltSync(10);
+    data.password = bcrypt.hashSync(data.password, salt);
+    const user = await prisma.users.create({
+      data: {
+        displayName: data.displayName,
+        name: data.name,
+        bio: data.bio,
+        email: data.email,
+        password: data.password
+      }
+    });
 
-
+    if (user) {
+      res.status(200).json({
+        status: 200,
+        message: 'User Created',
+        user: user
+      })
+    };
 
   } catch (error) {
     console.log(error);

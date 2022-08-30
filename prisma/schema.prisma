@@ -3,63 +3,56 @@ generator client {
 }
 
 datasource db {
-  provider          = "mysql"
-  url               = env("DATABASE_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 model Post {
   id          Int      @id @default(autoincrement())
-  owner       User     @relation(fields: [ownerId], references: [id])
   ownerId     Int
   imgUrl      String
   description String   @db.VarChar(255)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  saved       User?    @relation("SavedPost", fields: [savedId], references: [id])
+  updatedAt   DateTime
   savedId     Int?
-  tags        Tag[]
-}
-
-model Tag {
-  id    Int    @id @default(autoincrement())
-  name  String
-  posts Post[]
-}
-
-enum Role {
-  BASIC
-  ADMIN
-
-  @@map(name: "roles")
 }
 
 model Relationship {
-  id         Int  @id @default(autoincrement())
-  follower   User @relation("Follower", fields: [followerId], references: [id])
+  id         Int @id @default(autoincrement())
   followerId Int
-  followed   User @relation("Followed", fields: [followedId], references: [id])
   followedId Int
 }
 
-model User {
-  id          Int      @id @default(autoincrement())
-  displayName String   @db.VarChar(30)
-  name        String   @db.VarChar(30)
-  bio         String   @db.VarChar(500)
-  email       String   @unique @db.VarChar(50)
-  password    String   @unique @db.VarChar(50)
+model Tag {
+  id   Int    @id @default(autoincrement())
+  name String
+}
+
+model PostToTag {
+  A Int
+  B Int
+
+  @@unique([A, B], map: "_PostToTag_AB_unique")
+  @@index([B], map: "_PostToTag_B_index")
+  @@map("_PostToTag")
+}
+
+model users {
+  id          Int        @id @default(autoincrement())
+  displayName String     @db.VarChar(30)
+  name        String     @db.VarChar(30)
+  bio         String     @db.VarChar(500)
+  email       String     @unique @db.VarChar(50)
+  password    String
   image       String?
-  createdAt   DateTime @default(now()) @map(name: "created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map(name: "updated_at")
-  role        Role     @default(BASIC)
-
-  post  Post[]
-  saved Post[] @relation("SavedPost")
-
-  followers Relationship[] @relation("Follower")
-  following Relationship[] @relation("Followed")
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @default(now())
+  role        users_role @default(BASIC)
 
   @@unique([displayName, email])
-  @@map(name: "users")
+}
+
+enum users_role {
+  BASIC
+  ADMIN
 }

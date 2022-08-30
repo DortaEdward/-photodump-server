@@ -17,12 +17,6 @@ app.use(helmet());
 app.use(volleyball);
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.json({
-    message: "Welcome"
-  })
-})
-
 const authRoute = require('./api/auth');
 
 app.use('/api/v1/auth', authRoute);
